@@ -9,6 +9,10 @@
 
 **ChatGPT Chat Navigator** 是一款 Chrome 浏览器扩展，专为 ChatGPT 深度用户设计。当您与 ChatGPT 进行长篇对话时，它会自动在页面右侧生成一个侧边栏目录面板，让您可以一目了然地查看对话结构，并快速跳转到任意问答位置。
 
+![截图-1](./assets/show_3.png)
+
+![截图-2](./assets/show_4.png)
+
 ## 功能特性
 
 ### 侧边栏布局
