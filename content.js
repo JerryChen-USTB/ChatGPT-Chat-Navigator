@@ -316,7 +316,8 @@
       `;
             this.collapseBtn.style.display = 'flex';
 
-            document.body.appendChild(this.panel);
+            // 将面板插入到 ChatGPT 主内容区的 flex 容器中（作为右侧边栏）
+            this.insertPanelIntoLayout();
 
             // 将折叠按钮插入到 ChatGPT 右上角按钮容器
             this.insertExpandButton();
@@ -346,6 +347,26 @@
                 // 降级方案：添加到 body
                 console.warn('ChatGPT Chat Navigator: 未找到右上角按钮容器，使用降级方案');
                 document.body.appendChild(this.collapseBtn);
+            }
+        }
+
+        /**
+         * 将面板插入到 ChatGPT 页面布局中（侧边栏模式）
+         * 找到主内容区的 flex 容器，将面板作为其最后一个子元素插入，
+         * 利用 flex 布局自动压缩主内容区宽度
+         */
+        insertPanelIntoLayout() {
+            // 查找主内容区域（包含 data-scroll-root 的容器的父级 @container/main）
+            const scrollRoot = document.querySelector('[data-scroll-root]');
+            const mainContainer = scrollRoot?.closest('[class*="@container/main"]');
+            const flexParent = mainContainer?.parentElement;
+
+            if (flexParent && this.panel.parentElement !== flexParent) {
+                flexParent.appendChild(this.panel);
+            } else if (!flexParent && !this.panel.parentElement) {
+                // 降级方案：添加到 body
+                console.warn('ChatGPT Chat Navigator: 未找到主内容 flex 容器，面板添加到 body');
+                document.body.appendChild(this.panel);
             }
         }
 
@@ -655,6 +676,9 @@
                 this.conversationId = currentConvId;
                 this.loadCustomNames();
             }
+
+            // 确保面板在正确的 DOM 位置（SPA 路由切换可能导致容器重建）
+            this.insertPanelIntoLayout();
 
             // 如果正在滚动或正在重命名，跳过刷新以避免干扰
             if (this.isScrolling || this.editingItemId) return;

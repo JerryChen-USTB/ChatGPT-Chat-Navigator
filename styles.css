@@ -38,28 +38,23 @@ html.dark {
    面板容器
    ============================================================ */
 #chatanchor-panel {
-    position: fixed;
-    top: 60px;
-    right: 16px;
     width: var(--ca-panel-width);
-    max-height: calc(100vh - 120px);
+    height: 100%;
     background: var(--ca-bg);
-    border: 1px solid var(--ca-border);
-    border-radius: 12px;
-    box-shadow: var(--ca-shadow);
+    border-left: 1px solid var(--ca-border);
     display: flex;
     flex-direction: column;
-    z-index: 9999;
+    flex-shrink: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 14px;
     color: var(--ca-text);
-    transition: transform var(--ca-transition), opacity var(--ca-transition);
+    transition: width var(--ca-transition);
     overflow: hidden;
 }
 
 #chatanchor-panel.ca-collapsed {
-    transform: translateX(calc(100% + 20px));
-    opacity: 0;
+    width: 0;
+    border-left: none;
     pointer-events: none;
 }
 
@@ -119,6 +114,11 @@ html.dark {
     height: 16px;
 }
 
+/* 折叠按钮箭头指向右侧（侧边栏在右侧，折叠方向向右） */
+.ca-btn-collapse svg {
+    transform: rotate(180deg);
+}
+
 /* ============================================================
    搜索框
    ============================================================ */
@@ -159,7 +159,6 @@ html.dark {
     padding: 4px 8px 8px 8px;
     /* 减小顶部间距: 8px -> 4px */
     min-height: 100px;
-    max-height: calc(100vh - 280px);
 }
 
 .ca-list::-webkit-scrollbar {
@@ -427,32 +426,5 @@ html.dark {
 @media (max-width: 768px) {
     #chatanchor-panel {
         width: 260px;
-        right: 8px;
-        top: 50px;
-        max-height: calc(100vh - 100px);
     }
-
-    .ca-expand-btn {
-        right: 8px;
-        top: 50px;
-    }
-}
-
-/* ============================================================
-   动画
-   ============================================================ */
-@keyframes ca-fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-#chatanchor-panel {
-    animation: ca-fadeIn 0.3s ease;
 }
