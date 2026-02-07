@@ -643,7 +643,8 @@
 
         /**
          * 滚动到指定项
-         * 使用精确定位 + 滚动结束检测
+         * 使用自定义滚动动画解决 content-visibility 导致的首次跳转不准问题：
+         * 在动画每一帧中重新计算目标元素位置，确保即使布局变化也能准确定位
          */
         scrollToItem(id) {
             const item = this.tocManager.getItems().find((i) => i.id === id);
@@ -652,32 +653,99 @@
             // 设置滚动状态和目标 ID
             this.isScrolling = true;
             this.scrollTargetId = id;
+            this.scrollTargetElement = item.element;
 
             // 立即设置跳转目标指示器（小绿点）
             this.jumpTargetId = id;
             this.updateJumpIndicator(id);
 
-            // 不立即更新高亮，保持当前高亮不变
-            // 高亮将在滚动完全停止后转移
-
             // 获取滚动容器
             const scrollContainer = document.querySelector(CONFIG.SELECTORS.SCROLL_CONTAINER);
+            if (!scrollContainer) return;
 
-            // 计算目标位置，紧贴提问框上沿（仅留 2px 边距）
-            const elementRect = item.element.getBoundingClientRect();
-            const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { top: 0 };
-            const currentScrollTop = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
-            const targetScrollTop = currentScrollTop + elementRect.top - containerRect.top - 2;
-
-            // 启动滚动结束检测
-            this.setupScrollEndDetection(scrollContainer);
-
-            // 平滑滚动
-            if (scrollContainer) {
-                scrollContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
-            } else {
-                window.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+            // 取消之前的滚动动画
+            if (this.scrollAnimationId) {
+                cancelAnimationFrame(this.scrollAnimationId);
             }
+
+            // 启动自定义滚动动画
+            this.animateScrollToElement(item.element, scrollContainer);
+        }
+
+        /**
+         * 自定义滚动动画
+         * 在每一帧中重新计算目标位置，适应 content-visibility 导致的布局变化
+         */
+        animateScrollToElement(targetElement, scrollContainer) {
+            const duration = 500; // 动画持续时间（毫秒）
+            const startTime = performance.now();
+            const startScrollTop = scrollContainer.scrollTop;
+
+            // 计算目标位置
+            const containerRect = scrollContainer.getBoundingClientRect();
+            // 获取滚动容器的 scroll-padding-top（ChatGPT 用这个设置头部偏移）
+            const containerStyle = window.getComputedStyle(scrollContainer);
+            const scrollPaddingTop = parseFloat(containerStyle.scrollPaddingTop) || 0;
+
+            const getTargetScrollTop = () => {
+                const elementRect = targetElement.getBoundingClientRect();
+                // 目标：让元素顶部对齐到 scroll-padding-top 的位置
+                return scrollContainer.scrollTop + elementRect.top - containerRect.top - scrollPaddingTop + 20;
+            };
+
+            // 缓动函数：easeOutCubic，使滚动更自然
+            const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easedProgress = easeOutCubic(progress);
+
+                // 在每一帧中重新计算目标位置（关键：适应布局变化）
+                const currentTargetScrollTop = getTargetScrollTop();
+
+                // 计算当前帧应该滚动到的位置
+                // 使用动态目标位置，而不是固定的初始目标位置
+                const newScrollTop = startScrollTop + (currentTargetScrollTop - startScrollTop) * easedProgress;
+
+                scrollContainer.scrollTop = newScrollTop;
+
+                if (progress < 1) {
+                    // 继续动画
+                    this.scrollAnimationId = requestAnimationFrame(animate);
+                } else {
+                    // 动画结束，进行最终精确定位
+                    const finalTargetScrollTop = getTargetScrollTop();
+                    scrollContainer.scrollTop = finalTargetScrollTop;
+
+                    // 清理动画 ID
+                    this.scrollAnimationId = null;
+
+                    // 触发滚动结束处理
+                    this.onScrollAnimationEnd();
+                }
+            };
+
+            // 开始动画
+            this.scrollAnimationId = requestAnimationFrame(animate);
+        }
+
+        /**
+         * 自定义滚动动画结束处理
+         */
+        onScrollAnimationEnd() {
+            // 清理目标元素引用
+            this.scrollTargetElement = null;
+
+            // 更新高亮到目标项
+            if (this.scrollTargetId) {
+                this.updateActiveItemUI(this.scrollTargetId);
+                this.tocManager.setActiveItem(this.scrollTargetId);
+                this.scrollTargetId = null;
+            }
+
+            // 重置滚动状态
+            this.isScrolling = false;
         }
 
         /**
@@ -724,6 +792,18 @@
                 scrollTarget.removeEventListener('scroll', this.boundScrollEndHandler);
                 this.boundScrollEndHandler = null;
             }
+
+            // 恢复目标元素的 scroll-margin-top 样式
+            if (this.pendingScrollMarginRestore) {
+                const { element, value } = this.pendingScrollMarginRestore;
+                if (element) {
+                    element.style.scrollMarginTop = value || '';
+                }
+                this.pendingScrollMarginRestore = null;
+            }
+
+            // 清理目标元素引用
+            this.scrollTargetElement = null;
 
             // 现在才更新高亮到目标项
             if (this.scrollTargetId) {
