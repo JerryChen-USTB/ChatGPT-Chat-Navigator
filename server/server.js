@@ -45,7 +45,7 @@ app.post('/api/summarize', async (req, res) => {
                 'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
             },
             body: JSON.stringify({
-                model: 'qwen3-max',
+                model: 'qwen-flash',
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: text },
