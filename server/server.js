@@ -6,6 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
 const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+// const DASHSCOPE_API_URL = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions';
 
 if (!DASHSCOPE_API_KEY) {
     console.error('错误：请设置环境变量 DASHSCOPE_API_KEY');

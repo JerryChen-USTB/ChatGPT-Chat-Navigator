@@ -4,5 +4,4 @@ DOM/
 .claude/settings.local.json
 submit/
 submit.zip
-config.js
 server/node_modules/

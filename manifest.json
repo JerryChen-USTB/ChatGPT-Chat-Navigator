@@ -1,14 +1,14 @@
 {
     "manifest_version": 3,
-    "name": "ChatGPT Chat Navigator",
-    "version": "1.0.1",
-    "description": "为 ChatGPT 打造的对话导航工具，自动生成对话侧边目录，支持一键快速跳转至任意问答，助您在长对话中轻松定位",
+    "name": "Navigator for ChatGPT - Sidebar Navigator & AI Summary",
+    "version": "1.0.2",
+    "description": "为 ChatGPT 打造的对话导航工具，创建对话侧边目录，一键快速跳转至任意问答，AI提炼对话摘要，助您在长对话中轻松定位",
     "permissions": [
         "storage"
     ],
     "host_permissions": [
         "https://chatgpt.com/*",
-        "http://localhost:3000/*"
+        "https://jerrystudio.top/*"
     ],
     "background": {
         "service_worker": "background.js",
@@ -29,7 +29,7 @@
         }
     ],
     "action": {
-        "default_title": "ChatGPT Chat Navigator - 对话目录"
+        "default_title": "Navigator for ChatGPT - Sidebar Navigator & AI Summary"
     },
     "web_accessible_resources": [
         {
